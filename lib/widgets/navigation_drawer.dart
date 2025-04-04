@@ -223,36 +223,39 @@ class AppNavigationDrawer extends StatelessWidget {
   void _navigateToScreen(BuildContext context, int index) {
     Navigator.pop(context); // Close the drawer first
     
-    Widget? destinationScreen;
+    String routeName;
     
     switch (index) {
       case 0:
-        destinationScreen = const AgentsScreen();
+        routeName = '/agents';
         break;
       case 1:
-        destinationScreen = const WEngineScreen();
+        routeName = '/w_engine';
         break;
       case 2:
-        destinationScreen = const BangbooScreen();
+        routeName = '/bangboo';
         break;
       case 3:
-        destinationScreen = const PlannerScreen();
+        routeName = '/planner';
         break;
       case 4:
-        destinationScreen = const StorageScreen();
+        routeName = '/storage';
         break;
       case 5:
-        destinationScreen = const InterKnotScreen();
+        routeName = '/inter_knot';
         break;
       case 6:
-        destinationScreen = const OptionsScreen();
+        routeName = '/options';
         break;
+      default:
+        return; // Don't navigate if index is invalid
     }
     
-    if (destinationScreen != null) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => destinationScreen!),
-      );
-    }
+    // Use pushNamedAndRemoveUntil to ensure we don't get the "no routes" error
+    // This will remove all previous routes and push the new one
+    Navigator.of(context).pushNamedAndRemoveUntil(
+      routeName,
+      (route) => false, // Remove all previous routes
+    );
   }
 }
