@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../models/event.dart';
 import '../theme/app_theme.dart';
 import '../widgets/navigation_drawer.dart';
@@ -19,7 +20,7 @@ class _PlannerScreenState extends State<PlannerScreen> with SingleTickerProvider
     Event(
       id: '1',
       name: 'Deadly Assault',
-      iconUrl: 'assets/images/events/deadly_assault.png',
+      iconUrl: 'assets/images/events/deadly_assault.svg',
       deadline: DateTime.now().add(const Duration(hours: 17)),
       isCompleted: false,
       category: 'Combat Simulation',
@@ -27,7 +28,7 @@ class _PlannerScreenState extends State<PlannerScreen> with SingleTickerProvider
     Event(
       id: '2',
       name: 'Investigation',
-      iconUrl: 'assets/images/events/investigation.png',
+      iconUrl: 'assets/images/events/investigation.svg',
       deadline: DateTime.now().add(const Duration(days: 19, hours: 4)),
       agentIds: ['agent1', 'agent2', 'agent3'],
       isCompleted: false,
@@ -149,12 +150,11 @@ class _PlannerScreenState extends State<PlannerScreen> with SingleTickerProvider
             height: 30,
             margin: const EdgeInsets.only(right: 4),
             decoration: BoxDecoration(
-              color: AppTheme.primaryLight,
               shape: BoxShape.circle,
-              image: i == 0 || i == 1 ? const DecorationImage(
-                image: AssetImage('assets/images/events/investigation.png'),
-                fit: BoxFit.cover,
-              ) : null,
+              // Using SVG images requires special handling
+              // We'll use a placeholder color instead of the SVG for the avatar circles
+              color: i == 0 ? Colors.purple.withOpacity(0.7) : 
+                     i == 1 ? Colors.blue.withOpacity(0.7) : AppTheme.primaryLight,
             ),
             child: i >= 2 ? Center(
               child: Text(
@@ -203,10 +203,32 @@ class _PlannerScreenState extends State<PlannerScreen> with SingleTickerProvider
                     height: 40,
                     decoration: BoxDecoration(
                       color: AppTheme.primaryLight,
-                      borderRadius: BorderRadius.circular(8),
-                      image: DecorationImage(
-                        image: AssetImage(event.iconUrl!),
-                        fit: BoxFit.cover,
+                      shape: BoxShape.circle,
+                    ),
+                    child: ClipOval(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: SvgPicture.asset(
+                          event.iconUrl!,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryLight,
+                      shape: BoxShape.circle,
+                    ),
+                    child: ClipOval(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: SvgPicture.asset(
+                          event.iconUrl!,
+                          fit: BoxFit.contain,
+                        ),
                       ),
                     ),
                   ),
