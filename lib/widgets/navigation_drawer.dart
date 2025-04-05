@@ -36,35 +36,7 @@ class AppNavigationDrawer extends StatelessWidget {
             ),
           ),
           
-          // Current zone
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: AppTheme.primaryMedium,
-              borderRadius: BorderRadius.circular(24),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.tv, color: Colors.white),
-                const SizedBox(width: 8),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Zenless Zone',
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      'Zero',
-                      style: TextStyle(color: Colors.white.withOpacity(0.7)),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
+          // Removed Zenless Zone Zero button as requested
           
           // Logo
           Padding(
@@ -73,14 +45,14 @@ class AppNavigationDrawer extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'SEELIE',
+                  'ZZZ',
                   style: Theme.of(context).textTheme.displayLarge?.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(
-                  '.me',
+                  ' Planner',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: Colors.white.withOpacity(0.7),
                   ),

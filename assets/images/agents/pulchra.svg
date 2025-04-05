@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <rect width="128" height="128" fill="#3A3A50" />
+  <circle cx="64" cy="50" r="30" fill="#FFC107" opacity="0.8" />
+  <text x="64" y="90" font-family="Arial" font-size="16" fill="white" text-anchor="middle">PULCHRA</text>
+  <circle cx="64" cy="50" r="20" fill="#FFC107" opacity="0.5" />
+  <circle cx="64" cy="50" r="10" fill="#FFC107" opacity="0.3" />
+  <path d="M64 20 L68 30 L58 30 Z" fill="#FFC107" />
+</svg>

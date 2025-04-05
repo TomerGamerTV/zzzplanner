@@ -152,6 +152,8 @@ class _AgentsScreenState extends State<AgentsScreen> {
   List<String> _selectedElements = [];
   
   @override
+  bool _showAdBanner = true;
+
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -163,18 +165,47 @@ class _AgentsScreenState extends State<AgentsScreen> {
           ),
         ),
         actions: [
-          IconButton(icon: const Icon(Icons.add), onPressed: () {}),
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () {
+              // Show dialog to add a new agent
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Add New Agent'),
+                  content: const Text('This feature will allow adding a new agent to your collection.'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        // Add agent logic would go here
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Add'),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.sync),
             onPressed: () {},
           ),
-          IconButton(
-            icon: Icon(_isGridView ? Icons.grid_view : Icons.view_list),
-            onPressed: () {
-              setState(() {
-                _isGridView = !_isGridView;
-              });
-            },
+          // Fix overflow by wrapping in a Row with MainAxisSize.min
+          Container(
+            constraints: const BoxConstraints(maxWidth: 40),
+            child: IconButton(
+              icon: Icon(_isGridView ? Icons.grid_view : Icons.view_list),
+              onPressed: () {
+                setState(() {
+                  _isGridView = !_isGridView;
+                });
+              },
+            ),
           ),
         ],
       ),
@@ -187,8 +218,86 @@ class _AgentsScreenState extends State<AgentsScreen> {
       body: Column(
         children: [
           _buildFilterSection(),
+          // Ad banner with ZZZ Planner branding instead of Seelie
+          if (_showAdBanner)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+              color: AppTheme.primaryMedium,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  // Get screen size and orientation
+                  final screenSize = MediaQuery.of(context).size;
+                  final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+                  final isMobile = screenSize.width < 600;
+                  
+                  // For very small screens, show minimal content
+                  if (constraints.maxWidth < 350) {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.network(
+                          'https://ui-avatars.com/api/?name=ZZZ&background=random',
+                          width: 24,
+                          height: 24,
+                        ),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'ZZZ Planner',
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    );
+                  }
+                  
+                  // For medium-sized screens
+                  if (isMobile && !isLandscape) {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.network(
+                          'https://ui-avatars.com/api/?name=ZZZ&background=random',
+                          width: 24,
+                          height: 24,
+                        ),
+                        const SizedBox(width: 8),
+                        const Flexible(
+                          child: Text(
+                            'ZZZ Planner - Your Zenless Zone Zero companion',
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+                  
+                  // For larger screens, show full content
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.network(
+                        'https://ui-avatars.com/api/?name=ZZZ&background=random',
+                        width: 24,
+                        height: 24,
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'ZZZ Planner - Your Zenless Zone Zero companion',
+                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Your ultimate guide for agents, resources and planning ♥',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
           Expanded(
-            child: _buildAgentGrid(),
+            child: _isGridView ? _buildAgentGrid() : _buildAgentList(),
           ),
         ],
       ),
@@ -196,6 +305,11 @@ class _AgentsScreenState extends State<AgentsScreen> {
   }
 
   Widget _buildFilterSection() {
+    // Get screen size and orientation
+    final screenSize = MediaQuery.of(context).size;
+    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    final isMobile = screenSize.width < 600;
+    
     return Container(
       padding: const EdgeInsets.all(16.0),
       color: AppTheme.primaryDark,
@@ -213,110 +327,389 @@ class _AgentsScreenState extends State<AgentsScreen> {
               color: AppTheme.primaryMedium,
               borderRadius: BorderRadius.circular(24),
             ),
-            child: Row(
-              children: [
-                // Element filter buttons
-                for (int i = 0; i < _filterOptions.length; i++)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                    child: FilterChip(
-                      backgroundColor: AppTheme.primaryDark,
-                      selectedColor: _filterOptions[i]['color'],
-                      checkmarkColor: Colors.white,
-                      selected: _selectedFilterIndex == i,
-                      onSelected: (selected) {
-                        setState(() {
-                          _selectedFilterIndex = selected ? i : null;
-                        });
-                      },
-                      avatar: Icon(
-                        _filterOptions[i]['icon'],
-                        color: _selectedFilterIndex == i
-                            ? Colors.white
-                            : _filterOptions[i]['color'],
-                        size: 18,
-                      ),
-                      label: const SizedBox.shrink(),
-                      padding: EdgeInsets.zero,
-                      visualDensity: VisualDensity.compact,
-                    ),
-                  ),
-                
-                // Divider
-                const SizedBox(width: 8),
-                Container(
-                  height: 24,
-                  width: 1,
-                  color: AppTheme.primaryLight,
-                ),
-                const SizedBox(width: 8),
-                
-                // View options
-                IconButton(
-                  icon: const Icon(Icons.view_list, color: Colors.grey),
-                  onPressed: () {},
-                  iconSize: 20,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.visibility, color: Colors.grey),
-                  onPressed: () {},
-                  iconSize: 20,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.star, color: Colors.grey),
-                  onPressed: () {},
-                  iconSize: 20,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-                
-                // Search field
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: TextField(
-                      decoration: InputDecoration(
-                        hintText: 'Search',
-                        hintStyle: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
-                      onChanged: (value) {
-                        setState(() {
-                          _searchQuery = value;
-                        });
-                      },
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            child: isMobile && !isLandscape
+                ? _buildMobileFilterLayout()
+                : _buildDesktopFilterLayout(),
           ),
         ],
       ),
     );
   }
+  
+  // Mobile-optimized filter layout (stacked)
+  Widget _buildMobileFilterLayout() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Search field at the top
+        TextField(
+          decoration: InputDecoration(
+            hintText: 'Search',
+            hintStyle: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
+            border: InputBorder.none,
+            isDense: true,
+            contentPadding: EdgeInsets.zero,
+            prefixIcon: const Icon(Icons.search, size: 20, color: Colors.grey),
+          ),
+          style: const TextStyle(color: Colors.white, fontSize: 14),
+          onChanged: (value) {
+            setState(() {
+              _searchQuery = value;
+            });
+          },
+        ),
+        const SizedBox(height: 12),
+        // Scrollable row of filter chips
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              // Element filter buttons
+              for (int i = 0; i < _filterOptions.length; i++)
+                Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: FilterChip(
+                    backgroundColor: AppTheme.primaryDark,
+                    selectedColor: _filterOptions[i]['color'],
+                    checkmarkColor: Colors.white,
+                    selected: _selectedFilterIndex == i,
+                    onSelected: (selected) {
+                      setState(() {
+                        _selectedFilterIndex = selected ? i : null;
+                      });
+                    },
+                    avatar: Icon(
+                      _filterOptions[i]['icon'],
+                      color: _selectedFilterIndex == i
+                          ? Colors.white
+                          : _filterOptions[i]['color'],
+                      size: 18,
+                    ),
+                    label: const SizedBox.shrink(),
+                    padding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
+              // View options
+              IconButton(
+                icon: const Icon(Icons.view_list, color: Colors.grey),
+                onPressed: () {},
+                iconSize: 20,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+              IconButton(
+                icon: const Icon(Icons.visibility, color: Colors.grey),
+                onPressed: () {},
+                iconSize: 20,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+              IconButton(
+                icon: const Icon(Icons.star, color: Colors.grey),
+                onPressed: () {},
+                iconSize: 20,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+  
+  // Desktop/landscape filter layout (horizontal)
+  Widget _buildDesktopFilterLayout() {
+    return Row(
+      children: [
+        // Element filter buttons
+        for (int i = 0; i < _filterOptions.length; i++)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+            child: FilterChip(
+              backgroundColor: AppTheme.primaryDark,
+              selectedColor: _filterOptions[i]['color'],
+              checkmarkColor: Colors.white,
+              selected: _selectedFilterIndex == i,
+              onSelected: (selected) {
+                setState(() {
+                  _selectedFilterIndex = selected ? i : null;
+                });
+              },
+              avatar: Icon(
+                _filterOptions[i]['icon'],
+                color: _selectedFilterIndex == i
+                    ? Colors.white
+                    : _filterOptions[i]['color'],
+                size: 18,
+              ),
+              label: const SizedBox.shrink(),
+              padding: EdgeInsets.zero,
+              visualDensity: VisualDensity.compact,
+            ),
+          ),
+        
+        // Divider
+        const SizedBox(width: 8),
+        Container(
+          height: 24,
+          width: 1,
+          color: AppTheme.primaryLight,
+        ),
+        const SizedBox(width: 8),
+        
+        // View options
+        IconButton(
+          icon: const Icon(Icons.view_list, color: Colors.grey),
+          onPressed: () {},
+          iconSize: 20,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+        ),
+        IconButton(
+          icon: const Icon(Icons.visibility, color: Colors.grey),
+          onPressed: () {},
+          iconSize: 20,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+        ),
+        IconButton(
+          icon: const Icon(Icons.star, color: Colors.grey),
+          onPressed: () {},
+          iconSize: 20,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+        ),
+        
+        // Search field
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: 'Search',
+                hintStyle: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.zero,
+                prefixIcon: const Icon(Icons.search, size: 20, color: Colors.grey),
+              ),
+              style: const TextStyle(color: Colors.white, fontSize: 14),
+              onChanged: (value) {
+                setState(() {
+                  _searchQuery = value;
+                });
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
+  // Helper method to filter agents based on current filters
+  List<Agent> _getFilteredAgents() {
+    return _agents.where((agent) {
+      // Apply search filter
+      if (_searchQuery.isNotEmpty && 
+          !agent.name.toLowerCase().contains(_searchQuery.toLowerCase())) {
+        return false;
+      }
+      
+      // Apply element filters
+      if (_selectedElements.isNotEmpty && 
+          !agent.elements.any((element) => _selectedElements.contains(element))) {
+        return false;
+      }
+      
+      return true;
+    }).toList();
+  }
+  
   Widget _buildAgentGrid() {
+    // Filter agents based on search and filters
+    List<Agent> filteredAgents = _getFilteredAgents();
+    
+    // Get screen size and orientation
+    final screenSize = MediaQuery.of(context).size;
+    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    
+    // Determine number of columns based on screen width and orientation
+    int crossAxisCount;
+    double childAspectRatio;
+    
+    if (screenSize.width < 600) {
+      // Mobile portrait
+      crossAxisCount = 2;
+      childAspectRatio = 0.75;
+    } else if (screenSize.width < 900) {
+      // Mobile landscape or small tablet
+      crossAxisCount = isLandscape ? 3 : 2;
+      childAspectRatio = isLandscape ? 0.8 : 0.75;
+    } else {
+      // Large tablet or desktop
+      crossAxisCount = isLandscape ? 4 : 3;
+      childAspectRatio = isLandscape ? 0.85 : 0.8;
+    }
+    
     return GridView.builder(
       padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        childAspectRatio: 0.75,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
+        childAspectRatio: childAspectRatio,
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
       ),
-      itemCount: _agents.length,
+      itemCount: filteredAgents.length,
       itemBuilder: (context, index) {
-        final agent = _agents[index];
+        final agent = filteredAgents[index];
         return _buildAgentCard(agent);
       },
+    );
+  }
+  
+  // List view for agents
+  Widget _buildAgentList() {
+    List<Agent> filteredAgents = _getFilteredAgents();
+    
+    return ListView.separated(
+      padding: const EdgeInsets.all(16),
+      itemCount: filteredAgents.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        final agent = filteredAgents[index];
+        return _buildAgentListItem(agent);
+      },
+    );
+  }
+  
+  // List item for agent in list view
+  Widget _buildAgentListItem(Agent agent) {
+    // Get screen size and orientation
+    final screenSize = MediaQuery.of(context).size;
+    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    final isMobile = screenSize.width < 600;
+    
+    // Adjust avatar size based on screen size
+    final double avatarSize = isMobile ? (isLandscape ? 50 : 60) : 70;
+    
+    return Card(
+      color: AppTheme.primaryMedium,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AgentDetailScreen(agent: agent),
+            ),
+          );
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: EdgeInsets.all(isMobile ? 8.0 : 12.0),
+          child: Row(
+            children: [
+              // Agent avatar
+              Container(
+                width: avatarSize,
+                height: avatarSize,
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryDark,
+                  borderRadius: BorderRadius.circular(8),
+                  image: DecorationImage(
+                    image: AssetImage(agent.avatarUrl),
+                    fit: BoxFit.cover,
+                    onError: (exception, stackTrace) => const Icon(Icons.person),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              // Agent info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      agent.name,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        // Level indicator
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryDark,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            'Lv.${agent.level}',
+                            style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Rarity indicator
+                        if (agent.rarity != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppTheme.accentOrange.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              agent.rarity!,
+                              style: TextStyle(fontSize: 12, color: AppTheme.accentOrange),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    // Elements
+                    Row(
+                      children: agent.elements.map((element) {
+                        IconData elementIcon;
+                        Color elementColor;
+                        
+                        switch (element) {
+                          case 'fire':
+                            elementIcon = Icons.whatshot;
+                            elementColor = Colors.red;
+                            break;
+                          case 'water':
+                            elementIcon = Icons.water_drop;
+                            elementColor = Colors.blue;
+                            break;
+                          case 'ice':
+                            elementIcon = Icons.ac_unit;
+                            elementColor = Colors.lightBlue;
+                            break;
+                          case 'electric':
+                            elementIcon = Icons.bolt;
+                            elementColor = Colors.yellow;
+                            break;
+                          default:
+                            elementIcon = Icons.help_outline;
+                            elementColor = Colors.grey;
+                        }
+                        
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: Icon(elementIcon, color: elementColor, size: 16),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
+              ),
+              // Arrow indicator
+              Icon(Icons.arrow_forward_ios, size: 16, color: AppTheme.textSecondary),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

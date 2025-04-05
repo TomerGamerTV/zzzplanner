@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <rect width="128" height="128" fill="#3A3A50" />
+  <circle cx="64" cy="50" r="30" fill="#03A9F4" opacity="0.8" />
+  <text x="64" y="90" font-family="Arial" font-size="16" fill="white" text-anchor="middle">HARUMASA</text>
+  <circle cx="64" cy="50" r="20" fill="#03A9F4" opacity="0.5" />
+  <circle cx="64" cy="50" r="10" fill="#03A9F4" opacity="0.3" />
+  <path d="M44 50 Q64 35 84 50 Q64 65 44 50 Z" fill="#03A9F4" opacity="0.6" />
+</svg>

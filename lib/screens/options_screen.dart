@@ -10,14 +10,142 @@ class OptionsScreen extends StatefulWidget {
 }
 
 class _OptionsScreenState extends State<OptionsScreen> {
-  // Sample settings
+  // App settings
   bool _notificationsEnabled = true;
-  bool _darkModeEnabled = true;
   String _selectedLanguage = 'English';
-  double _volumeLevel = 0.7;
+  String _selectedTheme = 'Dark'; // Default theme
   
-  // Available languages
+  // Available languages and themes
   final List<String> _languages = ['English', 'Japanese', 'Chinese', 'Korean', 'French', 'German'];
+  final List<String> _themes = ['Dark', 'Light', 'OLED'];
+  
+  // Mock Google account info
+  final String _userEmail = 'user@gmail.com';
+  final String _userProfileImage = 'https://ui-avatars.com/api/?name=User&background=random';
+  bool _isGoogleConnected = true; // Changed from final to allow modification
+
+  Widget _buildThemeSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryDark,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(Icons.color_lens, color: AppTheme.accentBlue),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Theme',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    'Choose your preferred app theme',
+                    style: TextStyle(fontSize: 12, color: AppTheme.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: _buildThemeOption(
+                'Dark',
+                Icons.dark_mode,
+                AppTheme.primaryMedium,
+                _selectedTheme == 'Dark',
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _buildThemeOption(
+                'Light',
+                Icons.light_mode,
+                AppTheme.primaryLightMedium,
+                _selectedTheme == 'Light',
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _buildThemeOption(
+                'OLED',
+                Icons.nights_stay,
+                AppTheme.primaryOledMedium,
+                _selectedTheme == 'OLED',
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+  
+  Widget _buildThemeOption(String themeName, IconData icon, Color color, bool isSelected) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedTheme = themeName;
+          // Update app theme
+          switch (themeName) {
+            case 'Light':
+              AppTheme.currentTheme = AppThemeMode.light;
+              break;
+            case 'OLED':
+              AppTheme.currentTheme = AppThemeMode.oled;
+              break;
+            case 'Dark':
+            default:
+              AppTheme.currentTheme = AppThemeMode.dark;
+              break;
+          }
+          
+          // Notify listeners to rebuild the app with the new theme
+          AppTheme.notifyThemeChangeListeners();
+        });
+        
+        // Rebuild the entire app to apply theme changes
+        Navigator.of(context).pushNamedAndRemoveUntil('/options', (route) => false);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(12),
+          border: isSelected
+              ? Border.all(color: AppTheme.accentBlue, width: 2)
+              : null,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? AppTheme.accentBlue : AppTheme.textSecondary,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              themeName,
+              style: TextStyle(
+                color: isSelected ? AppTheme.accentBlue : AppTheme.textSecondary,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,18 +178,6 @@ class _OptionsScreenState extends State<OptionsScreen> {
               _buildSectionHeader('General Settings', Icons.settings),
               const SizedBox(height: 12),
               _buildSettingsCard([
-                _buildSwitchSetting(
-                  'Dark Mode',
-                  'Enable dark theme for the app',
-                  Icons.dark_mode,
-                  _darkModeEnabled,
-                  (value) {
-                    setState(() {
-                      _darkModeEnabled = value;
-                    });
-                  },
-                ),
-                const Divider(color: AppTheme.primaryLight),
                 _buildLanguageSetting(),
               ]),
               
@@ -82,27 +198,21 @@ class _OptionsScreenState extends State<OptionsScreen> {
                 ),
               ]),
               
+              // Theme settings
+              
               const SizedBox(height: 24),
-              _buildSectionHeader('Audio', Icons.volume_up),
+              _buildSectionHeader('Theme', Icons.color_lens),
               const SizedBox(height: 12),
               _buildSettingsCard([
-                _buildSliderSetting(
-                  'Volume',
-                  'Adjust the app volume',
-                  Icons.volume_up,
-                  _volumeLevel,
-                  (value) {
-                    setState(() {
-                      _volumeLevel = value;
-                    });
-                  },
-                ),
+                _buildThemeSelector(),
               ]),
               
               const SizedBox(height: 24),
               _buildSectionHeader('Account', Icons.person),
               const SizedBox(height: 12),
               _buildSettingsCard([
+                _buildGoogleAccountSection(),
+                const Divider(color: AppTheme.primaryLight),
                 _buildAccountInfo(),
                 const Divider(color: AppTheme.primaryLight),
                 _buildActionButton(
@@ -114,7 +224,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
                 const Divider(color: AppTheme.primaryLight),
                 _buildActionButton(
                   'Donate',
-                  'Support the development of SEELIE.me',
+                  'Support the development of ZZZ Planner',
                   Icons.favorite,
                   () {},
                   color: AppTheme.accentPink,
@@ -124,7 +234,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
               const SizedBox(height: 24),
               Center(
                 child: Text(
-                  'SEELIE.me v1.0.0',
+                  'ZZZ Planner v1.0.0',
                   style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
                 ),
               ),
@@ -319,6 +429,134 @@ class _OptionsScreenState extends State<OptionsScreen> {
     );
   }
 
+  Widget _buildGoogleAccountSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16.0),
+      child: Row(
+        children: [
+          // Google logo with profile image indicator
+          Stack(
+            children: [
+              // Google logo
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'G',
+                        style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 18),
+                      ),
+                      Text(
+                        'o',
+                        style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 18),
+                      ),
+                      Text(
+                        'o',
+                        style: TextStyle(color: Colors.yellow, fontWeight: FontWeight.bold, fontSize: 18),
+                      ),
+                      Text(
+                        'g',
+                        style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 18),
+                      ),
+                      Text(
+                        'l',
+                        style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 18),
+                      ),
+                      Text(
+                        'e',
+                        style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 18),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              // Profile image indicator on bottom right
+              Positioned(
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  width: 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 2,
+                        offset: const Offset(0, 1),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      _userProfileImage,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(width: 16),
+          // Account info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Google Account',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  _userEmail,
+                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+          // Status indicator and connect button
+          _isGoogleConnected
+              ? Icon(
+                  Icons.check_circle,
+                  color: AppTheme.success,
+                )
+              : ElevatedButton(
+                  onPressed: () {
+                    // Implement Google account connection
+                    setState(() {
+                      _isGoogleConnected = true;
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.accentBlue,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    minimumSize: const Size(80, 36),
+                  ),
+                  child: const Text('Connect'),
+                ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildAccountInfo() {
     return Row(
       children: [
@@ -336,7 +574,7 @@ class _OptionsScreenState extends State<OptionsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Zenless Zone Zero',
+                'ZZZ Account',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               Text(

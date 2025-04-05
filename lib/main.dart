@@ -12,14 +12,36 @@ void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+// Using a stateful widget for the app to allow theme rebuilding
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  // Key to force rebuild when theme changes
+  Key _themeKey = UniqueKey();
+
+  @override
+  void initState() {
+    super.initState();
+    // Listen for theme changes
+    AppTheme.addThemeChangeListener(() {
+      setState(() {
+        // Update the key to force a rebuild
+        _themeKey = UniqueKey();
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'SEELIE.me',
-      theme: AppTheme.darkTheme,
+      key: _themeKey,
+      title: 'ZZZ Planner',
+      theme: AppTheme.currentThemeData,
       debugShowCheckedModeBanner: false,
       home: const PlannerScreen(), // Starting with Planner screen as shown in images
       routes: {
